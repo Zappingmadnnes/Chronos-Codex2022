@@ -30,9 +30,9 @@ for i in tx_dict ['transactions']:
     #print(i.hex())
     txs = web3.eth.get_transaction(i.hex())
     txs_dict = dict(txs)
-    print(txs_dict.blockNumber)
+    print(txs_dict)
 
-f.close()
+# f.close()
 #tx_json = json.dumps(tx_dict, cls=HexJsonEncoder)
 
 
