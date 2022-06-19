@@ -30,8 +30,11 @@ class LongShortTrader():
         self.return_thresh = return_thresh
         self.volume_thresh = volume_thresh
         #************************************************************************
+
+        print("Init")
     
     def start_trading(self, historical_days):
+        print("start_trading")
         
         self.twm = ThreadedWebsocketManager()
         self.twm.start()
@@ -39,14 +42,19 @@ class LongShortTrader():
         if self.bar_length in self.available_intervals:
             self.get_most_recent(symbol = self.symbol, interval = self.bar_length,
                                  days = historical_days)
+            print("if mid")
             self.twm.start_kline_socket(callback = self.stream_candles,
                                         symbol = self.symbol, interval = self.bar_length)
         # "else" to be added later in the course 
+        print("start_end")
     
     def get_most_recent(self, symbol, interval, days):
+        print("get_most_recent")
     
         now = datetime.utcnow()
         past = str(now - timedelta(days = days))
+
+        print("1")
     
         bars = client.get_historical_klines(symbol = symbol, interval = interval,
                                             start_str = past, end_str = None, limit = 1000)
@@ -57,13 +65,15 @@ class LongShortTrader():
                       "Taker Buy Base Asset Volume", "Taker Buy Quote Asset Volume", "Ignore", "Date"]
         df = df[["Date", "Open", "High", "Low", "Close", "Volume"]].copy()
         df.set_index("Date", inplace = True)
+        print("2")
         for column in df.columns:
             df[column] = pd.to_numeric(df[column], errors = "coerce")
         df["Complete"] = [True for row in range(len(df)-1)] + [False]
-        
+        print("3")
         self.data = df
     
     def stream_candles(self, msg):
+        print("stream_candles")
         
         # extract the required items from msg
         event_time = pd.to_datetime(msg["E"], unit = "ms")
@@ -101,6 +111,7 @@ class LongShortTrader():
             self.execute_trades()
         
     def define_strategy(self):
+        print("define_strategy")
         
         df = self.data.copy()
         
@@ -123,6 +134,7 @@ class LongShortTrader():
         self.prepared_data = df.copy()
     
     def execute_trades(self): 
+        print("execute_trades")
         if self.prepared_data["position"].iloc[-1] == 1: # if position is long -> go/stay long
             if self.position == 0:
                 order = client.create_order(symbol = self.symbol, side = "BUY", type = "MARKET", quantity = self.units)
@@ -155,6 +167,7 @@ class LongShortTrader():
             self.position = -1
     
     def report_trade(self, order, going): 
+        print("report_trade")
         
         # extract data from order object
         side = order["side"]
@@ -186,9 +199,10 @@ class LongShortTrader():
 
         
 if __name__ == "__main__": # only if we run trader.py as a script, please do the following:
+    print("__name__")
 
-    api_key = "woPh8JPG78MfRVun7uIvUo3iMOBmO4mfOrnZWWNTdfH0xmhzg9NtzmzZQiAkiECb"
-    secret_key = "Y89IQ4Ndt60cp2H0oSl2egw8hPkAm3gct1khsYqMI4rEyaRrxIIAhoFSNXZU4hnq"
+    api_key = "08EXjdKMKAHFhhWZCBEopVCwIwBI5SlBjPvGJaoSa0TGJOfkO8COtyPVH6RIMvwI"
+    secret_key = "f0fGWOEfOKdIxw6tbzlUF8WyXj3CS7wEJMrq8MK9KlsrdovZ6iIS9Z5ZysQ1uCaa"
 
     client = Client(api_key = api_key, api_secret = secret_key, tld = "com", testnet = True)
     
